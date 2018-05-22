@@ -24,15 +24,12 @@ class ContextFree():
 
     def generalize(self):
         self.__remove_lambda()
-        return 
+        self.__remove_useless_variables()
 
     def __remove_lambda(self):
         v_n = []
         for leading_rule,result_rule in self.r.items():
             for right_result in result_rule:
-                print(leading_rule)
-                print(right_result)
-                print()
                 if right_result == 'λ':
                     v_n.append(leading_rule)
         sth_new_added = True
@@ -65,7 +62,45 @@ class ContextFree():
             new_grammer[leading] = list(set(result))
         self.r = new_grammer
 
+    def __remove_useless_variables(self):
+        using_variables_type_one = []
+        using_variables_type_two = [self.s]
+        using_variables_type_three = []
+        continue_bool = True
+        while continue_bool:
+            continue_bool = False
+            for leading,res in self.r.items():
+                for element in res:
+                    endless = False
+                    for letter in element:
+                        if (letter in alphabet) or (letter in using_variables_type_one):
+                            endless = True
+                    if endless and leading not in using_variables_type_one:
+                        using_variables_type_one.append(leading)
+                        continue_bool = True
+        while len(using_variables_type_two) > 0:
+            goal = using_variables_type_two.pop()
+            using_variables_type_three.append(goal)
+            for element in self.r[goal]:
+                for letter in element:
+                    if letter in variables and letter not in using_variables_type_two and letter not in using_variables_type_three:
+                        using_variables_type_two.append(letter)
+        new_rule = {}
+        for leading,res in self.r.items():
+            for element in res:
+                add = True
+                for letter in element:
+                    if letter in variables and (letter not in using_variables_type_one or letter not in using_variables_type_three):
+                        add = False
+                if add:
+                    if leading not in new_rule:
+                        new_rule[leading] = []
+                    new_rule[leading].append(element)
+
+        
+                        
 
 
-c = ContextFree({'S': ['λ', 'Ab'], 'A': ['λ','a']},'a')
+
+c = ContextFree({'S': ['λ', 'Ab'], 'A': ['λ','a','B'],'B':{'B'}},'S')
 c.generalize()
