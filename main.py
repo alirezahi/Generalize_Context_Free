@@ -26,7 +26,6 @@ class ContextFree():
         self.__remove_lambda()
         self.__remove_unit_rules()
         self.__remove_useless_variables()
-        print(self.r)
 
     def __remove_lambda(self):
         v_n = []
@@ -39,30 +38,32 @@ class ContextFree():
             sth_new_added = False
             for leading_rule,result_rule in self.r.items():
                 if leading_rule not in v_n:
-                    need_to_be_vn = False
+                    need_to_be_vn_exact = False
                     for right_result in result_rule:
-                        need_to_be_vn = False
+                        need_to_be_vn = True
                         for element in right_result:
-                            if not(element in variables):
-                                need_to_be_vn = True
-                    if need_to_be_vn:
+                            if element not in v_n:
+                                need_to_be_vn = False
+                        need_to_be_vn_exact = need_to_be_vn_exact or need_to_be_vn
+                    if need_to_be_vn_exact:
                         sth_new_added = True
                         v_n.append(leading_rule)
         new_grammer = {}
-        for leading_rule, result_rule in self.r.items():
-            for right_result in result_rule:
-                for combination in powerset(v_n):
-                    if len(combination) > 0:
-                        for element_of_combination in combination:
-                            new_result = right_result.replace(element_of_combination,'')
-                            new_result = new_result.replace('λ', '')
-                        if len(new_result) > 0:
-                            if leading_rule not in new_grammer:
-                                new_grammer[leading_rule] = []
-                            new_grammer[leading_rule].append(new_result)
-        for leading,result in new_grammer.items():
-            new_grammer[leading] = list(set(result))
-        self.r = new_grammer
+        if len(v_n) != 0:
+            for leading_rule, result_rule in self.r.items():
+                for right_result in result_rule:
+                    for combination in powerset(v_n):
+                        if len(combination) > 0:
+                            for element_of_combination in combination:
+                                new_result = right_result.replace(element_of_combination,'')
+                                new_result = new_result.replace('λ', '')
+                            if len(new_result) > 0:
+                                if leading_rule not in new_grammer:
+                                    new_grammer[leading_rule] = []
+                                new_grammer[leading_rule].append(new_result)
+            for leading,result in new_grammer.items():
+                new_grammer[leading] = list(set(result))
+            self.r = new_grammer
 
     def __remove_useless_variables(self):
         using_variables_type_one = []
@@ -135,3 +136,4 @@ class ContextFree():
 
 c = ContextFree({'S': ['Aa','B'], 'A': ['a','bc','B'],'B':['A','bb']},'S')
 c.generalize()
+print(c.r)
