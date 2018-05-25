@@ -24,7 +24,9 @@ class ContextFree():
 
     def generalize(self):
         self.__remove_lambda()
+        self.__remove_unit_rules()
         self.__remove_useless_variables()
+        print(self.r)
 
     def __remove_lambda(self):
         v_n = []
@@ -97,10 +99,39 @@ class ContextFree():
                         new_rule[leading] = []
                     new_rule[leading].append(element)
 
+    def __remove_unit_rules(self):
         
-                        
+        def is_unit(a_rule):
+            return a_rule in self.v
+        new_rules = {}
+        new_rule_added = False
+        for leading,res in self.r.items():
+            new_rules[leading] = {}
+            new_rules[leading]['unit'] = []
+            new_rules[leading]['non_unit'] = []
+            for rule in res:
+                if is_unit(rule):
+                    new_rules[leading]['unit'].append(rule)
+                    new_rule_added = True
+                else:
+                    new_rules[leading]['non_unit'].append(rule)
+        while new_rule_added:
+            new_rule_added = False
+            for leading,res in new_rules.items():
+                for rule in res['unit']:
+                    for unit_rule in new_rules[rule]['unit']:
+                        if unit_rule not in new_rules[leading]['unit'] and unit_rule != leading:
+                            new_rules[leading]['unit'].append(unit_rule)
+                            new_rule_added = True
+        too_new_rules = {}
+        for leading,res in new_rules.items():
+            too_new_rules[leading] = [i for i in res['non_unit']]
+            for element in res['unit']:
+                too_new_rules[leading] += [i for i in new_rules[element]['non_unit']]
+        self.r = too_new_rules
 
 
 
-c = ContextFree({'S': ['λ', 'Ab'], 'A': ['λ','a','B'],'B':{'B'}},'S')
+
+c = ContextFree({'S': ['Aa','B'], 'A': ['a','bc','B'],'B':['A','bb']},'S')
 c.generalize()
