@@ -24,7 +24,9 @@ class ContextFree():
 
     def generalize(self):
         self.__remove_lambda()
+        # print(self.r)
         self.__remove_unit_rules()
+        # print(self.r)
         self.__remove_useless_variables()
 
     def __remove_lambda(self):
@@ -61,6 +63,12 @@ class ContextFree():
                                 if leading_rule not in new_grammer:
                                     new_grammer[leading_rule] = []
                                 new_grammer[leading_rule].append(new_result)
+                        else:
+                            new_result = right_result.replace('λ', '')
+                            if len(new_result) > 0:
+                                if leading_rule not in new_grammer:
+                                    new_grammer[leading_rule] = []
+                                new_grammer[leading_rule].append(new_result)
             for leading,result in new_grammer.items():
                 new_grammer[leading] = list(set(result))
             self.r = new_grammer
@@ -76,9 +84,9 @@ class ContextFree():
                 for element in res:
                     endless = False
                     for letter in element:
-                        if (letter in alphabet) or (letter in using_variables_type_one):
+                        if not((letter in alphabet) or (letter in using_variables_type_one)):
                             endless = True
-                    if endless and leading not in using_variables_type_one:
+                    if not endless and leading not in using_variables_type_one:
                         using_variables_type_one.append(leading)
                         continue_bool = True
         while len(using_variables_type_two) > 0:
@@ -89,16 +97,23 @@ class ContextFree():
                     if letter in variables and letter not in using_variables_type_two and letter not in using_variables_type_three:
                         using_variables_type_two.append(letter)
         new_rule = {}
-        for leading,res in self.r.items():
-            for element in res:
-                add = True
-                for letter in element:
-                    if letter in variables and (letter not in using_variables_type_one or letter not in using_variables_type_three):
-                        add = False
-                if add:
-                    if leading not in new_rule:
-                        new_rule[leading] = []
-                    new_rule[leading].append(element)
+        for leading, res in self.r.items():
+            add = True
+            if leading in variables and (leading not in using_variables_type_one or leading not in using_variables_type_three):
+                add = False
+            if add:
+                tmp_add = []
+                for rule in res:
+                    gonna_add = True
+                    for letter in rule:
+                        if (letter in self.v) and ((letter not in using_variables_type_one) or (letter not in using_variables_type_three)):
+                            gonna_add = False
+                    if gonna_add:
+                        tmp_add.append(rule)
+                if len(tmp_add) > 0:
+                    new_rule[leading] = []
+                    new_rule[leading] = tmp_add
+        self.r = new_rule
 
     def __remove_unit_rules(self):
         
@@ -134,6 +149,7 @@ class ContextFree():
 
 
 
-c = ContextFree({'S': ['Aa','B'], 'A': ['a','bc','B'],'B':['A','bb']},'S')
+c = ContextFree({'S': ['aA','B','c'],'B':['A','bb'],'A':['a','bc','B']},'S')
+# λ
 c.generalize()
 print(c.r)
