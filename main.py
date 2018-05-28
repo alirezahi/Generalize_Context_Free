@@ -51,14 +51,17 @@ class ContextFree():
                         sth_new_added = True
                         v_n.append(leading_rule)
         new_grammer = {}
+        too_new_grammer = {}
         if len(v_n) != 0:
             for leading_rule, result_rule in self.r.items():
                 for right_result in result_rule:
                     for combination in powerset(v_n):
                         if len(combination) > 0:
+                            new_result = right_result
                             for element_of_combination in combination:
-                                new_result = right_result.replace(element_of_combination,'')
+                                new_result = new_result.replace(element_of_combination,'')
                                 new_result = new_result.replace('λ', '')
+
                             if len(new_result) > 0:
                                 if leading_rule not in new_grammer:
                                     new_grammer[leading_rule] = []
@@ -71,7 +74,17 @@ class ContextFree():
                                 new_grammer[leading_rule].append(new_result)
             for leading,result in new_grammer.items():
                 new_grammer[leading] = list(set(result))
-            self.r = new_grammer
+            for leading_rule, result_rule in new_grammer.items():
+                for rule in result_rule:
+                    gonna_add = True
+                    for letter in rule:
+                        if letter in self.v and letter not in new_grammer:
+                            gonna_add = False
+                    if gonna_add:
+                        if leading_rule not in too_new_grammer:
+                            too_new_grammer[leading_rule] = []
+                        too_new_grammer[leading_rule].append(rule)
+            self.r = too_new_grammer
 
     def __remove_useless_variables(self):
         using_variables_type_one = []
@@ -147,9 +160,7 @@ class ContextFree():
         self.r = too_new_rules
 
 
-
-
-c = ContextFree({'S': ['aA','B','c'],'B':['A','bb'],'A':['a','bc','B']},'S')
+c = ContextFree({'S': ['ABTC'], 'C': ['D', 'λ'], 'D':['d'],'B': ['λ', 'b'], 'A': ['BC'], 'T': ['t']}, 'S')
 # λ
 c.generalize()
 print(c.r)
